@@ -5,26 +5,23 @@ import {
   type InferAttributes,
   type InferCreationAttributes,
   Model,
-  type NonAttribute,
 } from "sequelize";
 import { sequelizeConnection } from "../db/config";
 import { Price } from "./price";
 
-class Package extends Model<
-  InferAttributes<Package>,
-  InferCreationAttributes<Package>
+class Municipality extends Model<
+  InferAttributes<Municipality>,
+  InferCreationAttributes<Municipality>
 > {
   declare static associations: {
-    prices: Association<Package, Price>;
+    prices: Association<Municipality, Price>;
   };
 
   declare id: CreationOptional<number>;
   declare name: string;
-  declare priceCents: number;
-  declare prices?: NonAttribute<Price[]>;
 }
 
-Package.init(
+Municipality.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -36,22 +33,11 @@ Package.init(
       allowNull: false,
       unique: true,
     },
-    priceCents: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-    },
   },
   {
     sequelize: sequelizeConnection,
-    tableName: "packages",
+    tableName: "municipalities",
   }
 );
 
-Package.hasMany(Price, {
-  sourceKey: "id",
-  foreignKey: "packageId",
-  as: "prices",
-});
-
-export { Package };
+export { Municipality };
