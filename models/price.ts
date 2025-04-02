@@ -60,4 +60,8 @@ Price.init(
   }
 );
 
+Price.belongsTo(Municipality, {
+  foreignKey: "municipalityId",
+});
+
 export { Price };

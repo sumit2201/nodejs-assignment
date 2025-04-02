@@ -4,18 +4,32 @@ import { Price } from "../models/price";
 
 export const seedDb = async () => {
   await Package.destroy({ truncate: true });
+  await Municipality.destroy({ truncate: true });
+  await Price.destroy({ truncate: true });
 
-  await Package.bulkCreate(
-    [
-      { name: "basic", priceCents: 20_000 },
-      { name: "plus", priceCents: 59_900 },
-      { name: "premium", priceCents: 111_100 },
-    ],
+  // Create municipalities
+  await Municipality.bulkCreate(
+    [{ name: "Göteborg" }, { name: "Stockholm" }, { name: "Solna" }],
     { validate: true }
   );
 
-  await Municipality.bulkCreate(
-    [{ name: "Göteborg" }, { name: "Stockholm" }, { name: "Solna" }],
+  const goteborg = (await Municipality.findOne({
+    where: { name: "Göteborg" },
+  })) as Municipality;
+  const stockholm = (await Municipality.findOne({
+    where: { name: "Stockholm" },
+  })) as Municipality;
+  const solna = (await Municipality.findOne({
+    where: { name: "Solna" },
+  })) as Municipality;
+
+  // Create packages, some with municipalityId and some without (null)
+  await Package.bulkCreate(
+    [
+      { name: "basic", priceCents: 20_000, municipalityId: null },
+      { name: "plus", priceCents: 59_900, municipalityId: stockholm.id },
+      { name: "premium", priceCents: 111_100, municipalityId: null },
+    ],
     { validate: true }
   );
 
@@ -27,6 +41,7 @@ export const seedDb = async () => {
     where: { name: "premium" },
   })) as Package;
 
+  // Add historical price tracking
   await Price.bulkCreate(
     [
       { priceCents: 5000, packageId: basic.id },
@@ -54,17 +69,7 @@ export const seedDb = async () => {
     { validate: true }
   );
 
-  // add prices based on municipalities
-  const goteborg = (await Municipality.findOne({
-    where: { name: "Göteborg" },
-  })) as Municipality;
-  const stockholm = (await Municipality.findOne({
-    where: { name: "Stockholm" },
-  })) as Municipality;
-  const solna = (await Municipality.findOne({
-    where: { name: "Solna" },
-  })) as Municipality;
-
+  // Add municipality-based pricing
   await Price.bulkCreate(
     [
       {
