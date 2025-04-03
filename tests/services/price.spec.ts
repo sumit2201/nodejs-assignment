@@ -54,5 +54,14 @@ describe("PriceService", () => {
     await PackageService.updatePackagePrice(basic, 100_00, "Stockholm", date);
 
     // Add some assertions here!
+    const priceHistory = await PriceService.getPriceHistory(
+      "basic",
+      2020,
+      "Stockholm"
+    );
+
+    expect(priceHistory).toStrictEqual({
+      Stockholm: [30_00, 100_00],
+    });
   });
 });

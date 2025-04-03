@@ -40,8 +40,6 @@ export default {
       whereCondition.municipalityId = municipality.id;
     }
 
-    console.debug("check where condition", whereCondition);
-
     // Fetch prices with municipality
     const prices = await Price.findAll({
       where: whereCondition,
@@ -50,8 +48,6 @@ export default {
       ],
       order: [["createdAt", "ASC"]],
     });
-
-    console.debug("check price data", JSON.stringify(prices));
 
     // Format result
     return prices.reduce((result: Record<string, number[]>, price) => {
