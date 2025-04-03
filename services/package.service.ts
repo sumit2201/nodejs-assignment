@@ -12,19 +12,20 @@ export default {
   async updatePackagePrice(
     pack: Package,
     newPriceCents: number,
-    municipality: string | null = null
+    municipality: string | null = null,
+    date?: Date | null
   ) {
     try {
-      const newPackage = await sequelizeConnection.transaction(async (t) => {
-        // Find the municipality if provided
+      return await sequelizeConnection.transaction(async (t) => {
         let municipalityInstance = null;
+
         if (municipality) {
+          // Find or create the municipality record
           municipalityInstance = await Municipality.findOne({
             where: { name: municipality },
             transaction: t,
           });
 
-          // If the municipality doesn't exist, create it
           if (!municipalityInstance) {
             municipalityInstance = await Municipality.create(
               { name: municipality },
@@ -32,49 +33,34 @@ export default {
             );
           }
 
-          // Update the package's municipality if changed
-          if (pack.municipalityId !== municipalityInstance.id) {
-            pack.municipalityId = municipalityInstance.id;
-          }
-        }
-        if (municipality) {
-          municipalityInstance = await Municipality.findOne({
-            where: { name: municipality },
-            transaction: t,
-          });
-
-          // If the municipality doesn't exist, create it
-          if (!municipalityInstance) {
-            municipalityInstance = await Municipality.create(
-              { name: municipality },
-              { transaction: t }
-            );
-          }
-
-          // Update the package's municipality if changed
+          // Update the package's municipality if needed
           if (pack.municipalityId !== municipalityInstance.id) {
             pack.municipalityId = municipalityInstance.id;
           }
         }
 
-        // Log the price change in the Price table
+        // Step 1: Create the price record with the old price
         await Price.create(
           {
             packageId: pack.id,
-            priceCents: pack.priceCents, // Store the old price as history
+            priceCents: newPriceCents,
             municipalityId: pack.municipalityId || null,
+            createdAt: date ?? new Date(),
           },
           { transaction: t }
         );
 
-        // Update the package with the new price
+        // Step 2: Update the price of the package
         pack.priceCents = newPriceCents;
-        return pack.save({ transaction: t });
-      });
 
-      return newPackage;
-    } catch (err: unknown) {
-      throw new Error("Error handling the transaction");
+        // Save the updated package with the new price
+        const updatedPack = await pack.save({ transaction: t });
+
+        return updatedPack;
+      });
+    } catch (err) {
+      console.error("Error in updatePackagePrice:", err); // This will log full error stack
+      throw err; // Re-throw to let Jest catch it
     }
   },
 

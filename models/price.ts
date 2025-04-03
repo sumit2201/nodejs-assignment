@@ -21,6 +21,8 @@ class Price extends Model<
 
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+
+  public readonly municipality?: Municipality;
 }
 
 Price.init(
@@ -62,6 +64,7 @@ Price.init(
 
 Price.belongsTo(Municipality, {
   foreignKey: "municipalityId",
+  as: "municipality",
 });
 
 export { Price };
