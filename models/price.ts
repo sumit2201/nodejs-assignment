@@ -59,6 +59,14 @@ Price.init(
   },
   {
     sequelize: sequelizeConnection,
+    indexes: [
+      {
+        fields: ["packageId", "municipalityId", "createdAt"], // Composite index for faster lookups
+      },
+      {
+        fields: ["packageId", "createdAt"], // If searching without municipality
+      },
+    ],
   }
 );
 
